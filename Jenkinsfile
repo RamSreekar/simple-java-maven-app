@@ -1,41 +1,37 @@
 pipeline {
-    agent { 
+    agent {
         label 'kube-slave'
     }
     stages {
-        stage('Build') { 
+        stage("docker agent") {
             agent {
                 docker {
                     image 'docker.io/maven:3.8.6'
                 }
             }
-            steps {
-                sh 'mvn clean install' 
-            }
-        }
-        stage('Test') {
-            steps {
-                // Since no specific agent is defined, it will reuse the previous node/container
-                script {
-                    currentBuild.rawBuild.environments.get("JENKINS_NODE_COOKIE") // Forces the same node/container to be reused
+    
+            stages {
+                stage('Build') {
+                    steps {
+                        sh 'mvn -B -DskipTests clean package'
+                    }
                 }
-                sh 'mvn test'
-            }
-            post {
-                always {
-                    junit 'target/surefire-reports/*.xml'
+                stage('Test') {
+                    steps {
+                        sh 'mvn test'
+                    }
+                    post {
+                        always {
+                            junit 'target/surefire-reports/*.xml'
+                        }
+                    }
                 }
-            }
-        }
-        stage('Deliver') {
-            steps {
-                // Since no specific agent is defined, it will reuse the previous node/container
-                script {
-                    currentBuild.rawBuild.environments.get("JENKINS_NODE_COOKIE") // Forces the same node/container to be reused
-                }
-                sh './jenkins/scripts/deliver.sh'
+                stage('Deliver') {
+                    steps {
+                        sh './jenkins/scripts/deliver.sh'
+                    }
+                }  
             }
         }
     }
 }
-
