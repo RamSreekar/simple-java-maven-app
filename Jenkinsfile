@@ -3,12 +3,12 @@ pipeline {
         label 'java-slave'
     }
     stages {
-        agent {
-            docker {
-                image 'docker.io/maven:3.8.6'
-            }
-        }
         stage('Build') { 
+            agent {
+                docker {
+                    image 'docker.io/maven:3.8.6'
+                }
+            }
             steps {
                 sh 'mvn clean install' 
             }
