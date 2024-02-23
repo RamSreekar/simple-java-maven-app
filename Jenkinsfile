@@ -1,8 +1,8 @@
 pipeline {
-  agent {
+    agent {
     label 'java-slave'
-  }
-  stages {
+    }
+    stages {
     stage('Build') {
         steps {
             container('java-maven') {
@@ -15,11 +15,6 @@ pipeline {
         steps {
             container('java-maven') {
                 sh 'mvn test'
-                post {
-                    always {
-                        junit 'target/surefire-reports/*.xml'
-                    }
-                }
             }
         }
     }
@@ -31,5 +26,11 @@ pipeline {
             }
         } 
     }
-  }
+    }
+
+    post {
+        always {
+            junit 'target/surefire-reports/*.xml'
+        }
+    }
 }
