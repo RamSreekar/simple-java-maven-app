@@ -1,37 +1,35 @@
 pipeline {
-    agent {
-        label 'kube-slave'
-    }
-    stages {
-        stage("docker agent") {
-            agent {
-                docker {
-                    image 'docker.io/maven:3.9.6'
-                }
+  agent {
+    label 'java-slave'
+  }
+  stages {
+    stage('Build') {
+        steps {
+            container('java-maven') {
+                sh 'mvn -B -DskipTests clean package'
             }
-    
-            stages {
-                stage('Build') {
-                    steps {
-                        sh 'mvn -B -DskipTests clean package'
+        } 
+    }
+
+    stage('Test') {
+        steps {
+            container('java-maven') {
+                sh 'mvn test'
+                post {
+                    always {
+                        junit 'target/surefire-reports/*.xml'
                     }
                 }
-                stage('Test') {
-                    steps {
-                        sh 'mvn test'
-                    }
-                    post {
-                        always {
-                            junit 'target/surefire-reports/*.xml'
-                        }
-                    }
-                }
-                stage('Deliver') {
-                    steps {
-                        sh './jenkins/scripts/deliver.sh'
-                    }
-                }  
             }
         }
     }
+
+    stage('Deliver') {
+        steps {
+            container('java-maven') {
+                sh './jenkins/scripts/deliver.sh'
+            }
+        } 
+    }
+  }
 }
